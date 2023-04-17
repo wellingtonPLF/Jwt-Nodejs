@@ -1,30 +1,23 @@
 import { prisma } from '../../prisma'
-import { UserCreateData, UserData, UserRepository } from '../../Interfaces/I_UserRepository/UserRepository'
-
-type userRep = {
-    create: (result: {data: UserCreateData}) => Promise<void>;
-    update: (user: UserCreateData) => Promise<void>;
-    delete: (id: number) => Promise<void>;
-    findMany: () => Promise<Array<UserCreateData>>;
-    findUnique: () => Promise<UserCreateData>;
-}
+import { UserCreateData, UserData, UserRepository } from '../../Interfaces/UserRepository'
+import { PrismaRepository } from '../../Interfaces/PrismaRepository';
 
 export class PrismaUserRepository implements UserRepository {
 
-    //userRepository: userRep = prisma.usuario;
+    private userRepository: PrismaRepository<UserData, UserCreateData> = prisma.usuario;
 
     async findAll() {
-        const users = await prisma.usuario.findMany();
+        const users = await this.userRepository.findMany();
         return users
     }
 
     async findById(id: number){
-        const user = await prisma.user.findUnique({ where: { id } });
+        const user = await this.userRepository.findUnique({ where: { id } });
         return user
     }
 
     async create({ nickName, bornDate }: UserCreateData){
-        await prisma.usuario.create({
+        await this.userRepository.create({
             data:{
                 nickName: nickName,
                 bornDate: bornDate
@@ -33,15 +26,13 @@ export class PrismaUserRepository implements UserRepository {
     }
 
     async update({id, nickName, bornDate}: UserData){
-        await prisma.usuario.update({
+        await this.userRepository.update({
             where: { id: id },
             data: {id: id, nickName: nickName, bornDate: bornDate}
         });
     }
 
     async delete(id: number) {
-        await prisma.usuario.delete({ where: { id } });
+        await this.userRepository.delete({ where: { id } });
     }
-
-
 }

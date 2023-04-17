@@ -12,8 +12,8 @@ datasource db {
 
 model Usuario {
   id Int @id @default(autoincrement())
-  nickname String 
-  bornDate String 
+  nickName String
+  bornDate DateTime 
   @@map("usuarios")
 }
 

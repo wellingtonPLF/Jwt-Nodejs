@@ -1,5 +1,4 @@
-import { UserCreateData, UserData, UserRepository } from "../Interfaces/I_UserRepository/UserRepository";
-
+import { UserCreateData, UserData, UserRepository } from "../Interfaces/UserRepository";
 
 export class UserService {
 
