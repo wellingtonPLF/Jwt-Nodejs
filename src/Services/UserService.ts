@@ -1,4 +1,4 @@
-import { UserCreateData, UserData, UserRepository } from "../Interfaces/UserRepository";
+import { UserRepository, UserRequest } from "../Interfaces/UserRepository";
 
 export class UserService {
 
@@ -6,28 +6,23 @@ export class UserService {
 
     async findAll() {
         const users = await this.userRepository.findAll();
-        return users
+        return users;
     }
 
     async findById(id: number) {
         const user = await this.userRepository.findById(id);
-        return user
+        return user;
     }
 
-    async insert(user: UserCreateData) {
-        const { nickName, bornDate } = user;
-
-        await this.userRepository.create({
-            nickName,
-            bornDate
-        })
+    async insert(user: UserRequest) {
+        await this.userRepository.create(user);
     }   
 
-    async update(user: UserData){
-        this.userRepository.update(user);
+    async update(user: UserRequest){
+        await this.userRepository.update(user);
     }
 
     async delete(id: number){
-        this.userRepository.delete(id);
+        await this.userRepository.delete(id);
     }
 }

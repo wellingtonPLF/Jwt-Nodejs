@@ -11,15 +11,50 @@ datasource db {
 }
 
 model Usuario {
-  id Int @id @default(autoincrement())
+  id Int @id @default(4) @map(name: "user_id")
   nickName String
   bornDate DateTime 
-  @@map("usuarios")
+  auth Auth @relation(fields: [auth_id], references: [id])
+  auth_id Int @unique
+  @@map("usuario")
 }
 
-//model Auth{
-//  id Int @id @default(autoincrement())
-//  email String
-//  password String
-// @@map("auth")
-//} 
+model Auth{
+  id Int @id @default(4) @map(name: "auth_id")
+  username String
+  email String
+  password String
+  token Token?
+  user Usuario?
+  roles Auth_Roles []
+  @@map("auth")
+} 
+
+model Token{
+  id Int @id @default(autoincrement()) @map(name: "token_id")
+  key String
+  auth Auth @relation(fields: [auth_id], references: [id])
+  auth_id Int @unique
+  @@map("token")
+}
+
+model Auth_Roles{
+  auth Auth @relation(fields: [auth_id], references: [id])
+  auth_id Int 
+  roles Roles @relation(fields: [role_id], references: [id])
+  role_id Int
+  @@id([auth_id, role_id])
+  @@map("auth_roles")
+}
+
+model Roles{
+  id Int @id @default(3) @map(name: "role_id")
+  roleName RoleName
+  auths Auth_Roles []
+  @@map("roles")
+}
+
+enum RoleName {
+	ROLE_ADMIN
+	ROLE_USER
+}

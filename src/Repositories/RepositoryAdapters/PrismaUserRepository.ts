@@ -1,10 +1,10 @@
 import { prisma } from '../../prisma'
-import { UserCreateData, UserData, UserRepository } from '../../Interfaces/UserRepository'
+import { UserData, UserRepository, UserRequest } from '../../Interfaces/UserRepository'
 import { PrismaRepository } from '../../Interfaces/PrismaRepository';
 
 export class PrismaUserRepository implements UserRepository {
 
-    private userRepository: PrismaRepository<UserData, UserCreateData> = prisma.usuario;
+    private userRepository: PrismaRepository<UserData> = prisma.usuario;
 
     async findAll() {
         const users = await this.userRepository.findMany();
@@ -16,19 +16,25 @@ export class PrismaUserRepository implements UserRepository {
         return user
     }
 
-    async create({ nickName, bornDate }: UserCreateData){
+    async create({ nickName, bornDate, auth }: UserRequest){
         await this.userRepository.create({
             data:{
                 nickName: nickName,
-                bornDate: bornDate
+                bornDate: new Date(bornDate),
+                auth_id: auth.id!
             }
         })
     }
 
-    async update({id, nickName, bornDate}: UserData){
+    async update({id, nickName, bornDate, auth}: UserRequest){
         await this.userRepository.update({
-            where: { id: id },
-            data: {id: id, nickName: nickName, bornDate: bornDate}
+            where: { id: id! },
+            data: {
+                id: id, 
+                nickName: nickName, 
+                bornDate: bornDate,
+                auth_id: auth.id!
+            }
         });
     }
 

@@ -1,6 +1,7 @@
 import express from "express"
 import { PrismaUserRepository } from "../Repositories/RepositoryAdapters/PrismaUserRepository"
 import { UserService } from "../Services/UserService"
+import { UserRequest } from "../Interfaces/UserRepository"
 
 const userRoute = express.Router()
 const userRepository = new PrismaUserRepository()
@@ -28,15 +29,11 @@ userRoute.get('/usuarios/:id', async (req, res) => {
 })
 
 userRoute.post('/usuarios', async (req, res) => {
-    const { nickName, bornDate } = req.body
+    const user: UserRequest = req.body;
     
     try {        
-        await userService.insert({
-            nickName,
-            bornDate
-        })
-
-        return res.status(201).send()    
+        await userService.insert(user)
+        return res.status(201).send()  
     } 
     catch (e){
         return res.status(500).send({"error": 'error'})
@@ -44,15 +41,10 @@ userRoute.post('/usuarios', async (req, res) => {
 })
 
 userRoute.put('/usuarios', async (req, res) => {
-    const { id, nickName, bornDate } = req.body
+    const user: UserRequest = req.body;
     
     try {
-        await userService.update({
-            id,
-            nickName,
-            bornDate
-        })
-
+        await userService.update(user)
         return res.status(201).send()    
     } 
     catch (e){
