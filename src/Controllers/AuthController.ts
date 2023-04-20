@@ -1,16 +1,14 @@
-import express from "express"
-import { PrismaAuthRepository } from "../Repositories/RepositoryAdapters/PrismaAuthRepository"
+import express, {Request, Response} from "express"
 import { AuthService } from "../Services/AuthService"
 import { AuthData, AuthRequest } from "../Interfaces/AuthRepository"
 
 const authRoute = express.Router()
-const authRepository = new PrismaAuthRepository()
-const authService = new AuthService(authRepository)
+const authService = new AuthService()
 
-authRoute.post('/usuarios/authentication', async (req, res) => {
+authRoute.post('/usuarios/authentication', async (req: Request, res: Response) => {
     try {
         const auth: AuthRequest = req.body;
-        await authService.authenticate(auth);
+        await authService.authenticate(auth, res);
         return res.status(201).send()
     }
     catch (e) {
@@ -20,7 +18,7 @@ authRoute.post('/usuarios/authentication', async (req, res) => {
 
 authRoute.get('/usuarios/isLoggedIn', async (req, res) => {
     try {
-        const result: boolean = await authService.isLoggedIn();
+        const result: boolean = await authService.isLoggedIn(req);
         return res.status(201).json({data: result})
     }
     catch (e) {
@@ -31,7 +29,7 @@ authRoute.get('/usuarios/isLoggedIn', async (req, res) => {
 authRoute.post('/usuarios/acceptAuth', async (req, res) => {    
     try {        
         const auth: AuthRequest = req.body;
-        await authService.acceptAuth(auth)
+        await authService.acceptAuth(auth, req, res)
         return res.status(201).send()  
     } 
     catch (e){
@@ -53,7 +51,7 @@ authRoute.post('/usuarios/authInsert', async (req, res) => {
 authRoute.put('/usuarios/authUpdate', async (req, res) => {
     try {
         const auth: AuthRequest = req.body;
-        await authService.update(auth)
+        await authService.update(auth, req)
         return res.status(201).send()    
     } 
     catch (e){
@@ -63,7 +61,7 @@ authRoute.put('/usuarios/authUpdate', async (req, res) => {
 
 authRoute.get('/usuarios/refresh', async (req, res) => {
     try {
-        await authService.refresh()
+        await authService.refresh(req, res)
         return res.status(201).send()
     }
     catch (e) {
@@ -73,7 +71,7 @@ authRoute.get('/usuarios/refresh', async (req, res) => {
 
 authRoute.get('/usuarios/logout', async (req, res) => {
     try {
-        await authService.logout()
+        await authService.logout(req, res)
         return res.status(201).send()
     }
     catch (e) {

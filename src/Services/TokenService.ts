@@ -6,6 +6,7 @@ import { PrismaTokenRepository } from "../Repositories/RepositoryAdapters/Prisma
 import { JwtUtil } from "../Utils/jwtUtil";
 import { CookieUtil } from "../Utils/CookieUtil";
 import { env } from "process";
+import { Request } from "express";
 
 export class TokenService {
 
@@ -13,7 +14,6 @@ export class TokenService {
     private authRepository!: AuthRepository;
     private jwtUtil!: JwtUtil;
     private accessTokenName?: string;
-    private request!: any;
 
     constructor() {
         this.tokenRepository = new PrismaTokenRepository();
@@ -53,9 +53,9 @@ export class TokenService {
         await this.tokenRepository.deleteByAuthID(auth_id);
     }
 
-    async getTokenValidation(id: number): Promise<boolean> {
+    async getTokenValidation(id: number, request: Request): Promise<boolean> {
         const admin:number = 1;
-		const cookieAccess: any = CookieUtil.getCookieValue(this.request, this.accessTokenName!);
+		const cookieAccess: any = CookieUtil.getCookieValue(request, this.accessTokenName!);
 		const accessToken: string  = (cookieAccess != null) ? cookieAccess.getValue() : null;
 		const jwt: TokenData | null = await this.tokenRepository.findByToken(accessToken);
 		const authID: string | undefined = this.jwtUtil.extractSubject(jwt!.key);

@@ -1,4 +1,5 @@
 import { env } from "process";
+import { Request, Response } from "express";
 import { AuthData, AuthRepository, AuthRequest } from "../Interfaces/AuthRepository";
 import { TokenData } from "../Interfaces/TokenRepository";
 import { PrismaAuthRepository } from "../Repositories/RepositoryAdapters/PrismaAuthRepository";
@@ -16,8 +17,6 @@ export class AuthService {
     private jwtUtil !: JwtUtil
     private accessTokenName?: string
     private refreshTokenName?: string
-    private request?: any
-    private response?: any
 
     constructor(){
         this.authRepository = new PrismaAuthRepository();
@@ -25,11 +24,9 @@ export class AuthService {
         this.jwtUtil = new JwtUtil();
         this.accessTokenName = env.TOKEN_NAME;
         this.refreshTokenName = env.REFRESH_NAME;
-        this.request = "";
-        this.response = "";
     }
 
-    async authenticate(auth: AuthRequest): Promise<void>{
+    async authenticate(auth: AuthRequest, response: Response): Promise<void>{
         let authDB: AuthData;
 		try {
 			if (auth.email != null) {
@@ -57,24 +54,24 @@ export class AuthService {
 
 			const jwtToken: string | undefined = this.jwtUtil.generateToken(authDB, TokenType.ACCESS_TOKEN);
 			const refreshToken: string | undefined = this.jwtUtil.generateToken(authDB, TokenType.REFRESH_TOKEN);
-			//response.setContentType(null);
+			response.removeHeader('Content-Type');
 			const jwt: TokenData = { key: jwtToken, auth_id: authDB.id!}
 			await this.tokenService.deleteByAuthID(authDB.id!);
 			await this.tokenService.insert(jwt);
-			CookieUtil.create(this.response, this.accessTokenName!, jwtToken, false, "localhost");
-			CookieUtil.create(this.response, this.refreshTokenName!, refreshToken, false, "localhost");
+			CookieUtil.create(response, this.accessTokenName!, jwtToken, false, "localhost");
+			CookieUtil.create(response, this.refreshTokenName!, refreshToken, false, "localhost");
 		}
 		catch (e: any) {
 			throw new Error(e.message);
 		}
     } 
 
-    async refresh(): Promise<void> {
-        const accessToken: string = CookieUtil.getCookieValue(this.request, this.accessTokenName!);
+    async refresh(request: Request, response: Response): Promise<void> {
+        const accessToken: string = CookieUtil.getCookieValue(request, this.accessTokenName!);
 		const jwt: TokenData = await this.tokenService.findByToken(accessToken);
 		const expiredAcessToken: string | undefined = this.jwtUtil.extractSubject(jwt.key);
 		if (expiredAcessToken == null) {
-			const refreshToken: string = CookieUtil.getCookieValue(this.request, this.refreshTokenName!);
+			const refreshToken: string = CookieUtil.getCookieValue(request, this.refreshTokenName!);
 			if (refreshToken == null) {
 				throw new Error(JwtType.INVALID_RT.toString());
 			}
@@ -85,20 +82,20 @@ export class AuthService {
 			const jwtRefresh: string = this.jwtUtil.generateToken(authDB, TokenType.REFRESH_TOKEN);
 			jwt.key = jwtToken;
 			await this.tokenService.update(jwt);
-			CookieUtil.create(this.response, this.accessTokenName!, jwtToken, false, "localhost");
-			CookieUtil.create(this.response, this.refreshTokenName!, jwtRefresh , false, "localhost");
+			CookieUtil.create(response, this.accessTokenName!, jwtToken, false, "localhost");
+			CookieUtil.create(response, this.refreshTokenName!, jwtRefresh , false, "localhost");
 		}
 		else {
 			throw new Error("Access Token not expired, also can't be refreshed");
 		}
     } 
 
-    async logout(): Promise<void> {
+    async logout(request: Request, response: Response): Promise<void> {
         try {
-			const jwt: string = CookieUtil.getCookieValue(this.request, this.accessTokenName!);
+			const jwt: string = CookieUtil.getCookieValue(request, this.accessTokenName!);
 			const jwtDB: TokenData = await this.tokenService.findByToken(jwt);
-			CookieUtil.clear(this.response, this.accessTokenName!);
-		    CookieUtil.clear(this.response, this.refreshTokenName!);
+			CookieUtil.clear(response, this.accessTokenName!);
+		    CookieUtil.clear(response, this.refreshTokenName!);
 		    this.tokenService.delete(jwtDB.id!);
 		}
 		catch(e) {
@@ -106,8 +103,8 @@ export class AuthService {
 		}
     } 
 
-    async isLoggedIn(): Promise<boolean> {
-        const jwt: string = CookieUtil.getCookieValue(this.request, this.accessTokenName!);
+    async isLoggedIn(request: Request): Promise<boolean> {
+        const jwt: string = CookieUtil.getCookieValue(request, this.accessTokenName!);
         let jwtDB: TokenData;
 
         try {
@@ -120,9 +117,9 @@ export class AuthService {
         return true
     } 
 
-    async acceptAuth(auth: AuthRequest) {
+    async acceptAuth(auth: AuthRequest, request: Request, response: Response) {
         const authDB: AuthData = await this.authRepository.findByEmail(auth.email);
-        if(await this.tokenService.getTokenValidation(authDB.id!) == false){
+        if(await this.tokenService.getTokenValidation(authDB.id!, request) == false){
             throw new Error(JwtType.INVALID_USER.toString());
         }
         let valid: boolean = false;
@@ -138,7 +135,7 @@ export class AuthService {
         if(!valid) {
             throw new Error("Incorrect Email or Password , try again.");
         }
-        //this.response.setContentType(null);
+        response.removeHeader('Content-Type');
     }  
 
     async findAll() {
@@ -162,8 +159,8 @@ export class AuthService {
         return authDB;
     }  
     
-    async update(auth: AuthRequest){
-        const accessToken: string = CookieUtil.getCookieValue(this.request, this.accessTokenName!);
+    async update(auth: AuthRequest, request: Request){
+        const accessToken: string = CookieUtil.getCookieValue(request, this.accessTokenName!);
 		const jwtDB: TokenData = await this.tokenService.findByToken(accessToken);
 		const authID: string | undefined = this.jwtUtil.extractSubject(jwtDB.key);
 		const authDB: AuthData = await this.authRepository.findById(parseInt(authID!));
