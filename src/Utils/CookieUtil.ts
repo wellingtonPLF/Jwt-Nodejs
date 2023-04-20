@@ -2,9 +2,15 @@ import { Request, Response } from "express";
 
 export class CookieUtil {
 	
-	static getCookieValue(request: Request, name: string): string {
-		const cookieAccess: any = request.cookies[name];
-		return (cookieAccess != null) ? cookieAccess.getValue() : null;
+	static getCookieValue(request: Request, name: string): string | null{
+        let cookieAccess: string | null;
+        try{
+            cookieAccess = request.cookies[name];
+        }
+        catch(e){
+            cookieAccess = null;
+        }
+		return cookieAccess;
 	}
 	
 	static create(response: Response, name: string, value: string, 

@@ -10,10 +10,10 @@ export interface AuthData {
 
 export interface AuthRequest {
     id?: number,
-    email: string,
-    username: string,
+    email?: string,
+    username?: string,
     password: string,
-    roles: Array<RoleData>
+    roles?: Array<RoleData>
 }
 
 export interface AuthRepository {
@@ -24,6 +24,6 @@ export interface AuthRepository {
     findByUserId: (id: number) => Promise<AuthData>;
     findByUsername: (username: string) => Promise<AuthData>;
     findAuthRolesByAuthId: (id: number) => Promise<Array<Auth_Roles>>;
-    update: (user: AuthData) => Promise<void>;
+    update: (user: AuthRequest) => Promise<void>;
     delete: (id: number) => Promise<void>
 }

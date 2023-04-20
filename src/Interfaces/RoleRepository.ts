@@ -1,6 +1,6 @@
 import { RoleName } from "@prisma/client";
 
 export interface RoleData {
-    id: number,
+    role_id: number,
     roleName: RoleName
 }

@@ -5,12 +5,15 @@ import dotenv from 'dotenv';
 import cookieParser from "cookie-parser"
 import dotenvExpand from 'dotenv-expand';
 import authRoute from './Controllers/AuthController';
+import { JwtAuthenticationFilter } from './Filter/JwtAuthenticationFilter';
 
 const app = express();
+const filter = new JwtAuthenticationFilter();
 
-app.use(cors()) 
+app.use(cors())
 app.use(cookieParser())
 app.use(express.json());
+app.use(filter.middlewareFilter.bind(filter))
 app.use([
     userRoute,
     authRoute

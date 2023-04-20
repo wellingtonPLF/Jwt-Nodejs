@@ -38,7 +38,10 @@ export class PrismaAuthRepository implements AuthRepository {
     }
 
     async findByUsername(username: string) {
-        const auth: AuthData = await this.authRepository.findFirstOrThrow({ where: { username: username } });
+        const auth: AuthData = await this.authRepository.findFirstOrThrow({ where: { username: username } })
+        .catch(
+            () => { throw new Error(JwtType.INVALID_USER.toString())}
+        ) 
         return auth;
     }
 
@@ -52,16 +55,16 @@ export class PrismaAuthRepository implements AuthRepository {
 
         const auth = await this.authRepository.create({
             data:{
-                email: email,
-                username: username, 
+                email: email!,
+                username: username!, 
                 password: password,
             }
         })
 
-        const result: Array<Auth_Roles> = roles.map((role) => {
+        const result: Array<Auth_Roles> = roles!.map((role) => {
             return {
                 auth_id: auth.id!,
-                role_id: role.id
+                role_id: role.role_id
             }
         })
 
@@ -72,13 +75,13 @@ export class PrismaAuthRepository implements AuthRepository {
         return auth;
     }
 
-    async update({id, email, username, password}: AuthData){
+    async update({id, email, username, password}: AuthRequest){
         await this.authRepository.update({
             where: { id: id! },
             data:{
                 id: id,
-                email: email, 
-                username: username, 
+                email: email!, 
+                username: username!, 
                 password: password
             }
         });

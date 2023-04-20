@@ -33,30 +33,22 @@ export class AuthService {
 				authDB = await this.authRepository.findByEmail(auth.email);
 			}
 			else if (auth.email == null) {
-				authDB = await this.authRepository.findByUsername(auth.username)
+				authDB = await this.authRepository.findByUsername(auth.username!)
 			}
 			else {
 				throw new Error("User not Found");
 			}
-            let valid: boolean = false;
+            let valid: boolean = await bcrypt.compare(auth.password, authDB.password);
 
-            bcrypt.compare(auth.password, authDB.password, (err, result) => {
-                if (result) {
-                    valid = true
-                } else {
-                    valid = false
-                }
-            });
-			
 			if(!valid) {
 				throw new Error("Incorrect Email or Password , try again.");
 			}
-
+            
 			const jwtToken: string | undefined = this.jwtUtil.generateToken(authDB, TokenType.ACCESS_TOKEN);
 			const refreshToken: string | undefined = this.jwtUtil.generateToken(authDB, TokenType.REFRESH_TOKEN);
-			response.removeHeader('Content-Type');
+			response.locals.result = undefined
 			const jwt: TokenData = { key: jwtToken, auth_id: authDB.id!}
-			await this.tokenService.deleteByAuthID(authDB.id!);
+			await this.tokenService.deleteByAuthID(authDB.id!).catch(() => {});
 			await this.tokenService.insert(jwt);
 			CookieUtil.create(response, this.accessTokenName!, jwtToken, false, "localhost");
 			CookieUtil.create(response, this.refreshTokenName!, refreshToken, false, "localhost");
@@ -67,8 +59,8 @@ export class AuthService {
     } 
 
     async refresh(request: Request, response: Response): Promise<void> {
-        const accessToken: string = CookieUtil.getCookieValue(request, this.accessTokenName!);
-		const jwt: TokenData = await this.tokenService.findByToken(accessToken);
+        const accessToken: string | null = CookieUtil.getCookieValue(request, this.accessTokenName!);
+		const jwt: TokenData = await this.tokenService.findByToken(accessToken!);
         let expiredAcessToken: string | undefined;
         let authID: string | undefined;
         try{
@@ -78,7 +70,7 @@ export class AuthService {
             expiredAcessToken = undefined;
         }
 		if (expiredAcessToken == undefined) {
-			const refreshToken: string = CookieUtil.getCookieValue(request, this.refreshTokenName!);
+			const refreshToken: string | null = CookieUtil.getCookieValue(request, this.refreshTokenName!);
 			if (refreshToken == null) {
 				throw new Error(JwtType.INVALID_RT.toString());
 			}
@@ -103,8 +95,8 @@ export class AuthService {
 
     async logout(request: Request, response: Response): Promise<void> {
         try {
-			const jwt: string = CookieUtil.getCookieValue(request, this.accessTokenName!);
-			const jwtDB: TokenData = await this.tokenService.findByToken(jwt);
+			const jwt: string | null = CookieUtil.getCookieValue(request, this.accessTokenName!);
+			const jwtDB: TokenData = await this.tokenService.findByToken(jwt!);
 			CookieUtil.clear(response, this.accessTokenName!);
 		    CookieUtil.clear(response, this.refreshTokenName!);
 		    this.tokenService.delete(jwtDB.id!);
@@ -115,11 +107,11 @@ export class AuthService {
     } 
 
     async isLoggedIn(request: Request): Promise<boolean> {
-        const jwt: string = CookieUtil.getCookieValue(request, this.accessTokenName!);
+        const jwt: string | null = CookieUtil.getCookieValue(request, this.accessTokenName!);
         let jwtDB: TokenData;
 
         try {
-            jwtDB = await this.tokenService.findByToken(jwt);
+            jwtDB = await this.tokenService.findByToken(jwt!);
         }
         catch(e){
             return false
@@ -129,28 +121,25 @@ export class AuthService {
     } 
 
     async acceptAuth(auth: AuthRequest, request: Request, response: Response) {
-        const authDB: AuthData = await this.authRepository.findByEmail(auth.email);
+        const authDB: AuthData = await this.authRepository.findByEmail(auth.email!);
         if(await this.tokenService.getTokenValidation(authDB.id!, request) == false){
             throw new Error(JwtType.INVALID_USER.toString());
         }
-        let valid: boolean = false;
-
-        bcrypt.compare(auth.password, authDB.password, (err, result) => {
-            if (result) {
-                valid = true
-            } else {
-                valid = false
-            }
-        });
+        let valid: boolean = await bcrypt.compare(auth.password, authDB.password);
 
         if(!valid) {
             throw new Error("Incorrect Email or Password , try again.");
         }
-        response.removeHeader('Content-Type');
+        response.locals.result = undefined
     }  
 
     async findAll() {
         const users = await this.authRepository.findAll();
+        return users;
+    }
+
+    async findAuthRolesByAuthId(id: number) {
+        const users = await this.authRepository.findAuthRolesByAuthId(id);
         return users;
     }
 
@@ -186,8 +175,8 @@ export class AuthService {
     }  
     
     async update(auth: AuthRequest, request: Request){
-        const accessToken: string = CookieUtil.getCookieValue(request, this.accessTokenName!);
-		const jwtDB: TokenData = await this.tokenService.findByToken(accessToken);
+        const accessToken: string | null = CookieUtil.getCookieValue(request, this.accessTokenName!);
+		const jwtDB: TokenData = await this.tokenService.findByToken(accessToken!);
 		const authID: string | undefined = this.jwtUtil.extractSubject(jwtDB.key);
         const authDB: AuthData = await this.authRepository.findById(parseInt(authID!));
         auth.password  = await bcrypt.hash(auth.password, 10)

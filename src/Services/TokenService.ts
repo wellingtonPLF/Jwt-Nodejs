@@ -80,9 +80,8 @@ export class TokenService {
 
     async getTokenValidation(id: number, request: Request): Promise<boolean> {
         const admin:number = 1;
-		const cookieAccess: any = CookieUtil.getCookieValue(request, this.accessTokenName!);
-		const accessToken: string  = (cookieAccess != null) ? cookieAccess.getValue() : null;
-		const jwt: TokenData | null = await this.tokenRepository.findByToken(accessToken);
+		const accessToken: string | null = CookieUtil.getCookieValue(request, this.accessTokenName!);
+		const jwt: TokenData | null = await this.tokenRepository.findByToken(accessToken!);
         const authID: string | undefined = this.jwtUtil.extractSubject(jwt!.key);
 		const auth: Array<Auth_Roles> = await this.authRepository.
         findAuthRolesByAuthId(parseInt(authID!));

@@ -1,12 +1,21 @@
-import express from "express"
+import express, { Request, Response } from "express"
 import { PrismaUserRepository } from "../Repositories/RepositoryAdapters/PrismaUserRepository"
 import { UserService } from "../Services/UserService"
 import { UserRequest } from "../Interfaces/UserRepository"
+import { RoleEnum } from "../Enums/RoleEnum"
+import { JwtAuthenticationFilter } from "../Filter/JwtAuthenticationFilter"
 
 const userRoute = express.Router()
 const userService = new UserService()
 
-userRoute.get('/usuarios', async (req, res) => {
+userRoute.get('/usuarios', async (req: Request, res: Response) => {
+    const authorization: Response | undefined = JwtAuthenticationFilter.authorization(res, 
+    [
+        RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_USER
+    ]);
+    if (authorization != undefined){
+        return authorization;
+    }
     try {
         const users = await userService.findAll()
         return res.status(201).json({data: users})
@@ -17,6 +26,13 @@ userRoute.get('/usuarios', async (req, res) => {
 })
 
 userRoute.get('/usuarios/:id', async (req, res) => {
+    const authorization: Response | undefined = JwtAuthenticationFilter.authorization(res, 
+    [
+        RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_USER
+    ]);
+    if (authorization != undefined){
+        return authorization;
+    }
     try {
         const userId = req.params.id;        
         const user = await userService.getAuthenticatedUser(req);
@@ -28,10 +44,10 @@ userRoute.get('/usuarios/:id', async (req, res) => {
 })
 
 userRoute.post('/usuarios', async (req, res) => {
-    const user: UserRequest = req.body;
+    const { nickName, bornDate, auth } = req.body;
     
     try {        
-        await userService.insert(user)
+        await userService.insert({ nickName, bornDate, auth })
         return res.status(201).send()  
     } 
     catch (e){
@@ -40,10 +56,17 @@ userRoute.post('/usuarios', async (req, res) => {
 })
 
 userRoute.put('/usuarios', async (req, res) => {
-    const user: UserRequest = req.body;
+    const authorization: Response | undefined = JwtAuthenticationFilter.authorization(res, 
+    [
+        RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_USER
+    ]);
+    if (authorization != undefined){
+        return authorization;
+    }
+    const { id, nickName, bornDate, auth } = req.body;
     
     try {
-        const result = await userService.update(user, req)
+        const result = await userService.update({ id, nickName, bornDate, auth }, req)
         return res.status(201).json({data: result})    
     } 
     catch (e){
@@ -52,6 +75,13 @@ userRoute.put('/usuarios', async (req, res) => {
 })
 
 userRoute.delete('/usuarios/:id', async (req, res) => {
+    const authorization: Response | undefined = JwtAuthenticationFilter.authorization(res, 
+    [
+        RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_USER
+    ]);
+    if (authorization != undefined){
+        return authorization;
+    }
     try {
         const userId = req.params.id;        
         await userService.delete(parseInt(userId), req, res);

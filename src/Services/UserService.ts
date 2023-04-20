@@ -59,8 +59,8 @@ export class UserService {
     }
 
     async getAuthenticatedUser(request: Request): Promise<UserResponse> {
-		const accessToken: string = CookieUtil.getCookieValue(request, this.accessTokenName!);
-		const jwt: TokenData = await this.tokenService.findByToken(accessToken);
+		const accessToken: string | null = CookieUtil.getCookieValue(request, this.accessTokenName!);
+		const jwt: TokenData = await this.tokenService.findByToken(accessToken!);
 		const authID: string | undefined = this.jwtUtil.extractSubject(jwt.key);
 		const authDB: AuthData = await this.authService.findById(parseInt(authID!));
 		const userDB: UserData = await this.userRepository.findByAuthId(authDB.id!);
