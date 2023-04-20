@@ -2,12 +2,14 @@ import express from 'express'
 import cors from 'cors';
 import userRoute from './Controllers/UserController';
 import dotenv from 'dotenv';
+import cookieParser from "cookie-parser"
 import dotenvExpand from 'dotenv-expand';
 import authRoute from './Controllers/AuthController';
 
 const app = express();
 
 app.use(cors()) 
+app.use(cookieParser())
 app.use(express.json());
 app.use([
     userRoute,

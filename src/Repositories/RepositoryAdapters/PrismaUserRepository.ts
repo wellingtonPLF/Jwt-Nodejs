@@ -12,22 +12,28 @@ export class PrismaUserRepository implements UserRepository {
     }
 
     async findById(id: number){
-        const user = await this.userRepository.findUnique({ where: { id } });
+        const user = await this.userRepository.findUniqueOrThrow({ where: { id } });
         return user
     }
 
-    async create({ nickName, bornDate, auth }: UserRequest){
-        await this.userRepository.create({
+    async findByAuthId(id: number){
+        const user = await this.userRepository.findFirstOrThrow({ where: { auth_id: id } });
+        return user;
+    }
+
+    async create({ nickName, bornDate, auth }: UserRequest) : Promise<UserData>{
+        const user = await this.userRepository.create({
             data:{
                 nickName: nickName,
                 bornDate: new Date(bornDate),
                 auth_id: auth.id!
             }
         })
+        return user;
     }
 
-    async update({id, nickName, bornDate, auth}: UserRequest){
-        await this.userRepository.update({
+    async update({id, nickName, bornDate, auth}: UserRequest): Promise<UserData>{
+        const user = await this.userRepository.update({
             where: { id: id! },
             data: {
                 id: id, 
@@ -36,6 +42,7 @@ export class PrismaUserRepository implements UserRepository {
                 auth_id: auth.id!
             }
         });
+        return user
     }
 
     async delete(id: number) {

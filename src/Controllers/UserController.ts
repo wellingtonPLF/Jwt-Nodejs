@@ -4,8 +4,7 @@ import { UserService } from "../Services/UserService"
 import { UserRequest } from "../Interfaces/UserRepository"
 
 const userRoute = express.Router()
-const userRepository = new PrismaUserRepository()
-const userService = new UserService(userRepository)
+const userService = new UserService()
 
 userRoute.get('/usuarios', async (req, res) => {
     try {
@@ -20,7 +19,7 @@ userRoute.get('/usuarios', async (req, res) => {
 userRoute.get('/usuarios/:id', async (req, res) => {
     try {
         const userId = req.params.id;        
-        const user = await userService.findById(parseInt(userId));
+        const user = await userService.getAuthenticatedUser(req);
         return res.status(201).json({data: user})
     }
     catch (e) {
@@ -44,8 +43,8 @@ userRoute.put('/usuarios', async (req, res) => {
     const user: UserRequest = req.body;
     
     try {
-        await userService.update(user)
-        return res.status(201).send()    
+        const result = await userService.update(user, req)
+        return res.status(201).json({data: result})    
     } 
     catch (e){
         return res.status(500).send({"error": 'error'})
@@ -55,7 +54,7 @@ userRoute.put('/usuarios', async (req, res) => {
 userRoute.delete('/usuarios/:id', async (req, res) => {
     try {
         const userId = req.params.id;        
-        await userService.delete(parseInt(userId));
+        await userService.delete(parseInt(userId), req, res);
         return res.status(201).send()
     }
     catch (e) {

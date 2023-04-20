@@ -21,7 +21,7 @@ export interface AuthRepository {
     findAll: () => Promise<Array<AuthData>>;
     findById: (id: number) => Promise<AuthData>;
     findByEmail: (email: string) => Promise<AuthData>;
-    findByUserId: (id: number) => Promise<AuthData | null>;
+    findByUserId: (id: number) => Promise<AuthData>;
     findByUsername: (username: string) => Promise<AuthData>;
     findAuthRolesByAuthId: (id: number) => Promise<Array<Auth_Roles>>;
     update: (user: AuthData) => Promise<void>;

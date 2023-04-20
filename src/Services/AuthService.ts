@@ -69,14 +69,25 @@ export class AuthService {
     async refresh(request: Request, response: Response): Promise<void> {
         const accessToken: string = CookieUtil.getCookieValue(request, this.accessTokenName!);
 		const jwt: TokenData = await this.tokenService.findByToken(accessToken);
-		const expiredAcessToken: string | undefined = this.jwtUtil.extractSubject(jwt.key);
-		if (expiredAcessToken == null) {
+        let expiredAcessToken: string | undefined;
+        let authID: string | undefined;
+        try{
+            expiredAcessToken = this.jwtUtil.extractSubject(jwt.key);
+        }
+        catch(e){
+            expiredAcessToken = undefined;
+        }
+		if (expiredAcessToken == undefined) {
 			const refreshToken: string = CookieUtil.getCookieValue(request, this.refreshTokenName!);
 			if (refreshToken == null) {
 				throw new Error(JwtType.INVALID_RT.toString());
 			}
-			const authID: string | undefined = this.jwtUtil.extractSubject(refreshToken);
-
+            try{
+                authID = this.jwtUtil.extractSubject(refreshToken);
+            }
+            catch(e){
+                throw new Error(JwtType.EXPIRED_RT.toString())
+            }
 			const authDB: AuthData = await this.authRepository.findById(parseInt(authID!));
 			const jwtToken: string = this.jwtUtil.generateToken(authDB, TokenType.ACCESS_TOKEN);
 			const jwtRefresh: string = this.jwtUtil.generateToken(authDB, TokenType.REFRESH_TOKEN);
@@ -140,30 +151,45 @@ export class AuthService {
 
     async findAll() {
         const users = await this.authRepository.findAll();
-        return users
+        return users;
     }
 
     async findById(id: number){
-        const user = await this.authRepository.findById(id);
-        return user
+        try{
+            const user = await this.authRepository.findById(id);
+            return user;
+        }
+        catch(e){
+            throw new Error("The requested Id was not found.")
+        }
     }
 
     async findByUserID(id: number){
-        const user = await this.authRepository.findByUserId(id);
-        return user
+        try{
+            const user = await this.authRepository.findByUserId(id);
+            return user;
+        }
+        catch(e){
+            throw new Error("The requested Id was not found.")
+        }
     }
 
     async insert(auth: AuthRequest) : Promise<AuthData> {
-        auth.password  = await bcrypt.hash(auth.password, 10)
-        const authDB = await this.authRepository.create(auth);
-        return authDB;
+        try{
+            auth.password  = await bcrypt.hash(auth.password, 10)
+            const authDB = await this.authRepository.create(auth);
+            return authDB;   
+        }
+        catch(e){
+            throw new Error("Somenthing went wrong at insert Auth");
+        }
     }  
     
     async update(auth: AuthRequest, request: Request){
         const accessToken: string = CookieUtil.getCookieValue(request, this.accessTokenName!);
 		const jwtDB: TokenData = await this.tokenService.findByToken(accessToken);
 		const authID: string | undefined = this.jwtUtil.extractSubject(jwtDB.key);
-		const authDB: AuthData = await this.authRepository.findById(parseInt(authID!));
+        const authDB: AuthData = await this.authRepository.findById(parseInt(authID!));
         auth.password  = await bcrypt.hash(auth.password, 10)
 		if (auth.email != null) {
 			authDB.email = auth.email; 
@@ -175,6 +201,11 @@ export class AuthService {
     }
 
     async delete(id: number){
-        await this.authRepository.delete(id);
+        try{
+            await this.authRepository.delete(id);
+        }
+        catch(e){
+            throw new Error("The requested Id was not found.")
+        }
     }
 }

@@ -1,28 +1,25 @@
+import { Request, Response } from "express";
 
 export class CookieUtil {
 	
-	static getCookieValue(request: any, name: string): string {
-		const cookieAccess: any = ""//WebUtils.getCookie(request, name);
+	static getCookieValue(request: Request, name: string): string {
+		const cookieAccess: any = request.cookies[name];
 		return (cookieAccess != null) ? cookieAccess.getValue() : null;
 	}
 	
-	static create(httpServletResponse: any, name: string, value: string, 
+	static create(response: Response, name: string, value: string, 
         secure: boolean, domain: string): void{
 
-        // const cookie: Cookie = new Cookie(name,value)
-        // cookie.setSecure(secure);
-        // cookie.setHttpOnly(true);
-        // cookie.setMaxAge(60 * 60 * 24 * 365);
-        // cookie.setDomain(domain);
-        // cookie.setPath("/");
-        // httpServletResponse.addCookie(cookie);
+        const config = { 
+            maxAge: 1000 * 60 * 60 * 24 * 365, 
+            httpOnly: true,
+            secure: secure,
+            domain: domain,
+            path: "/"
+        }
+        response.cookie(name, value, config);
     }
-    static clear(httpServletResponse: any, name: string): void{
-        // const cookie: Cookie = new Cookie(name, null);
-        // cookie.setPath("/");
-        // cookie.setHttpOnly(true);
-        // cookie.setMaxAge(1);
-        // cookie.setDomain("localhost");
-        // httpServletResponse.addCookie(cookie);
+    static clear(response: Response, name: string): void {
+        response.clearCookie(name)
     }
 }

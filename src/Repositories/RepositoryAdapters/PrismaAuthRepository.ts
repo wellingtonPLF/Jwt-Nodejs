@@ -4,6 +4,7 @@ import { PrismaRepositoryAR, PrismaRepository } from "../../Interfaces/PrismaRep
 import { prisma } from "../../prisma";
 import { RoleData } from "../../Interfaces/RoleRepository";
 import { UserData } from "../../Interfaces/UserRepository";
+import { JwtType } from "../../Enums/JwtEnum";
 
 export class PrismaAuthRepository implements AuthRepository {
 
@@ -23,12 +24,16 @@ export class PrismaAuthRepository implements AuthRepository {
     }
 
     async findById(id: number) {
-        const auth: AuthData = await this.authRepository.findUniqueOrThrow({ where: { id } });
+        const auth = await this.authRepository.findUniqueOrThrow({ where: { id }}).catch(
+            () => { throw new Error(JwtType.INVALID_USER.toString())}
+        ) 
         return auth;
     }
 
     async findByEmail(email: string) {
-        const auth: AuthData = await this.authRepository.findFirstOrThrow({ where: { email: email } });
+        const auth = await this.authRepository.findFirstOrThrow({ where: { email: email } }).catch(
+            () => { throw new Error(JwtType.INVALID_USER.toString())}
+        ) 
         return auth;
     }
 
