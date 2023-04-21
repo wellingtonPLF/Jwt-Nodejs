@@ -159,7 +159,7 @@ export class AuthService {
             return user;
         }
         catch(e){
-            throw new Error("The requested Id was not found.")
+            throw new Error("Can't find Auth by userID.")
         }
     }
 
@@ -194,7 +194,7 @@ export class AuthService {
             await this.authRepository.delete(id);
         }
         catch(e){
-            throw new Error("The requested Id was not found.")
+            throw new Error("The requested Auth Id was not found.")
         }
     }
 }

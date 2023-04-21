@@ -76,7 +76,7 @@ export class UserService {
     async insert(user: UserRequest) {
         try {
 			const userDB: UserData = await this.userRepository.create(user);
-			const authDB: AuthData = await this.authService.findByUserID(user.id!);
+			const authDB: AuthData = await this.authService.findByUserID(userDB.id!);
             const result: UserResponse = 
             { 
                 nickName: userDB.nickName, 
@@ -85,8 +85,8 @@ export class UserService {
             }
             return result
 		}
-		catch(e) {
-			throw new Error("Something went wrong at insert User");
+		catch(e: any) {
+			throw new Error(e.message);
 		}
     }   
 
@@ -116,9 +116,9 @@ export class UserService {
 		if(await this.tokenService.getTokenValidation(auth.id!, request) == false) {
 			throw new Error(JwtType.INVALID_USER.toString());
 		}
+        await this.userRepository.delete(id);
 		await this.authService.delete(auth.id!);
 		CookieUtil.clear(response, this.accessTokenName!);
 	    CookieUtil.clear(response, this.refreshTokenName!);
-        await this.userRepository.delete(id);
     }
 }

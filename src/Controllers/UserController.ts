@@ -1,9 +1,8 @@
 import express, { Request, Response } from "express"
-import { PrismaUserRepository } from "../Repositories/RepositoryAdapters/PrismaUserRepository"
 import { UserService } from "../Services/UserService"
-import { UserRequest } from "../Interfaces/UserRepository"
 import { RoleEnum } from "../Enums/RoleEnum"
 import { JwtAuthenticationFilter } from "../Filter/JwtAuthenticationFilter"
+import { prisma } from "../prisma"
 
 const userRoute = express.Router()
 const userService = new UserService()
@@ -20,12 +19,12 @@ userRoute.get('/usuarios', async (req: Request, res: Response) => {
         const users = await userService.findAll()
         return res.status(201).json({data: users})
     }
-    catch (e) {
-        return res.status(500).send({"error": 'error'})
+    catch (e: any) {
+        return res.status(500).send({"error": e.message})
     }
 })
 
-userRoute.get('/usuarios/:id', async (req, res) => {
+userRoute.get('/usuarios/getUser', async (req, res) => {
     const authorization: Response | undefined = JwtAuthenticationFilter.authorization(res, 
     [
         RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_USER
@@ -34,12 +33,11 @@ userRoute.get('/usuarios/:id', async (req, res) => {
         return authorization;
     }
     try {
-        const userId = req.params.id;        
         const user = await userService.getAuthenticatedUser(req);
         return res.status(201).json({data: user})
     }
-    catch (e) {
-        return res.status(500).send({"error": 'error'})
+    catch (e: any) {
+        return res.status(500).send({"error": e.message})
     }
 })
 
@@ -50,8 +48,8 @@ userRoute.post('/usuarios', async (req, res) => {
         await userService.insert({ nickName, bornDate, auth })
         return res.status(201).send()  
     } 
-    catch (e){
-        return res.status(500).send({"error": 'error'})
+    catch (e: any){
+        return res.status(500).send({"error": e.message})
     }
 })
 
@@ -69,8 +67,8 @@ userRoute.put('/usuarios', async (req, res) => {
         const result = await userService.update({ id, nickName, bornDate, auth }, req)
         return res.status(201).json({data: result})    
     } 
-    catch (e){
-        return res.status(500).send({"error": 'error'})
+    catch (e: any){
+        return res.status(500).send({"error": e.message})
     }
 })
 
@@ -79,7 +77,7 @@ userRoute.delete('/usuarios/:id', async (req, res) => {
     [
         RoleEnum.ROLE_ADMIN, RoleEnum.ROLE_USER
     ]);
-    if (authorization != undefined){
+    if (authorization != undefined) {
         return authorization;
     }
     try {
@@ -87,8 +85,8 @@ userRoute.delete('/usuarios/:id', async (req, res) => {
         await userService.delete(parseInt(userId), req, res);
         return res.status(201).send()
     }
-    catch (e) {
-        return res.status(500).send({"error": 'error'})
+    catch (e: any) {
+        return res.status(500).send({"error": e.message})
     }
 })
 

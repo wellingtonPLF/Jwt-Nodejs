@@ -28,6 +28,8 @@ export class PrismaUserRepository implements UserRepository {
                 bornDate: new Date(bornDate),
                 auth_id: auth.id!
             }
+        }).catch(() => {
+            throw new Error("Can't associate same auth_id to other user.")
         })
         return user;
     }
@@ -38,14 +40,18 @@ export class PrismaUserRepository implements UserRepository {
             data: {
                 id: id, 
                 nickName: nickName, 
-                bornDate: bornDate,
+                bornDate: new Date(bornDate),
                 auth_id: auth.id!
             }
-        });
+        }).catch(() => {
+            throw new Error("Error on Update USER.")
+        })
         return user
     }
 
     async delete(id: number) {
-        await this.userRepository.delete({ where: { id } });
+        await this.userRepository.delete({ where: { id } }).catch(() => {
+            throw new Error("Can't delete user.")
+        });
     }
 }

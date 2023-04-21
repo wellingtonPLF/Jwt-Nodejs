@@ -1,6 +1,6 @@
 import express, {Request, Response} from "express"
 import { AuthService } from "../Services/AuthService"
-import { AuthData, AuthRequest } from "../Interfaces/AuthRepository"
+import { AuthData } from "../Interfaces/AuthRepository"
 import { RoleEnum } from "../Enums/RoleEnum"
 import { JwtAuthenticationFilter } from "../Filter/JwtAuthenticationFilter"
 

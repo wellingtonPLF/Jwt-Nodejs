@@ -1,3 +1,4 @@
+import { Auth_Roles } from "@prisma/client";
 
 export interface PrismaRepository<T> {
     create: (result: {data: T}) => Promise<T>;
@@ -12,5 +13,6 @@ export interface PrismaRepository<T> {
 
 export interface PrismaRepositoryAR<T> {
     createMany: (result: {data: Array<T>}) => Promise<any>;
+    deleteMany: (type: {where: { auth_id: number} }) => Promise<{ count: number }>;
     findMany: (type: {where: {auth_id: number}}) => Promise<Array<T>>;
 }

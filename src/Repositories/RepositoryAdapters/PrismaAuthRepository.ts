@@ -88,6 +88,7 @@ export class PrismaAuthRepository implements AuthRepository {
     }
 
     async delete(id: number) {
+        await this.authRolesRepository.deleteMany({ where: { auth_id: id }})
         await this.authRepository.delete({ where: { id } });
     }
 }
