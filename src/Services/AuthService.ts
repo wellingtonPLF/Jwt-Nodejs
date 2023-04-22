@@ -29,10 +29,10 @@ export class AuthService {
     async authenticate(auth: AuthRequest, response: Response): Promise<void>{
         let authDB: AuthData;
 		try {
-			if (auth.email != null) {
+			if (auth.email != undefined) {
 				authDB = await this.authRepository.findByEmail(auth.email);
 			}
-			else if (auth.email == null) {
+			else if (auth.username != undefined) {
 				authDB = await this.authRepository.findByUsername(auth.username!)
 			}
 			else {
@@ -109,7 +109,6 @@ export class AuthService {
     async isLoggedIn(request: Request): Promise<boolean> {
         const jwt: string | null = CookieUtil.getCookieValue(request, this.accessTokenName!);
         let jwtDB: TokenData;
-
         try {
             jwtDB = await this.tokenService.findByToken(jwt!);
         }

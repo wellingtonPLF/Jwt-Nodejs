@@ -7,7 +7,7 @@ import dotenvExpand from 'dotenv-expand';
 import authRoute from './Controllers/AuthController';
 import { JwtAuthenticationFilter } from './Filter/JwtAuthenticationFilter';
 
-const app = express();
+export const app = express();
 const filter = new JwtAuthenticationFilter();
 
 app.use(cors())

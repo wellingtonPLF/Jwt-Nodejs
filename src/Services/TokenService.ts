@@ -43,6 +43,16 @@ export class TokenService {
         }
     }
 
+    async findByAuthID(id: number) {
+        try{
+            const tokenDB = await this.tokenRepository.findByAuthID(id);
+            return tokenDB;
+        }
+        catch(e){
+            throw new Error(JwtType.INVALID_AT.toString())
+        }
+    }
+
     async insert(token: TokenData) {
         try{
             await this.tokenRepository.create(token);

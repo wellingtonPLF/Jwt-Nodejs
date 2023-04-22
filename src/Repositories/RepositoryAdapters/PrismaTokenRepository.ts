@@ -6,6 +6,11 @@ export class PrismaTokenRepository implements TokenRepository {
 
     private tokenRepository: PrismaRepository<TokenData> = prisma.token;
 
+    async findById(id: number){
+        const token = await this.tokenRepository.findUniqueOrThrow({ where: { id } });
+        return token;
+    }
+
     async findByToken(token: string) {
         const tokenDB: TokenData = await prisma.token.findFirstOrThrow({
             where: { key: token}
@@ -13,9 +18,11 @@ export class PrismaTokenRepository implements TokenRepository {
         return tokenDB;
     }
 
-    async findById(id: number){
-        const token = await this.tokenRepository.findUniqueOrThrow({ where: { id } });
-        return token;
+    async findByAuthID(id: number) {
+        const tokenDB: TokenData = await prisma.token.findFirstOrThrow({
+            where: { auth_id: id}
+        });
+        return tokenDB;
     }
 
     async create({ key, auth_id }: TokenData) {

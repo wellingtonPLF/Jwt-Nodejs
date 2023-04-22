@@ -1,6 +1,7 @@
 import { prisma } from '../../prisma'
 import { UserData, UserRepository, UserRequest } from '../../Interfaces/UserRepository'
 import { PrismaRepository } from '../../Interfaces/PrismaRepository';
+import { JwtType } from '../../Enums/JwtEnum';
 
 export class PrismaUserRepository implements UserRepository {
 
@@ -17,6 +18,9 @@ export class PrismaUserRepository implements UserRepository {
     }
 
     async findByAuthId(id: number){
+        if (id == undefined){
+            throw new Error(JwtType.INVALID_USER.toString())
+        }
         const user = await this.userRepository.findFirstOrThrow({ where: { auth_id: id } });
         return user;
     }

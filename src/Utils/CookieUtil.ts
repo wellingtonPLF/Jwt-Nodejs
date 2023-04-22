@@ -6,11 +6,14 @@ export class CookieUtil {
         let cookieAccess: string | null;
         try{
             cookieAccess = request.cookies[name];
+            if (cookieAccess == undefined) {
+                return null
+            }
+            return cookieAccess
         }
         catch(e){
-            cookieAccess = null;
+            return null
         }
-		return cookieAccess;
 	}
 	
 	static create(response: Response, name: string, value: string, 
