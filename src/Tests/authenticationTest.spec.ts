@@ -8,7 +8,6 @@ import { TokenService } from "../Services/TokenService";
 chai.use(chaiHttp);
 const tokenService = new TokenService()
 
-
 describe('authenticate + createUser', () => {
     
     it('should be able to authenticate', async () => {

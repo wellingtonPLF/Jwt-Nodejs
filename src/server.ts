@@ -10,7 +10,12 @@ import { JwtAuthenticationFilter } from './Filter/JwtAuthenticationFilter';
 export const app = express();
 const filter = new JwtAuthenticationFilter();
 
-app.use(cors())
+app.use(cors({
+    origin: '*', //http://localhost:4200
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE']
+}));
+
 app.use(cookieParser())
 app.use(express.json());
 app.use(filter.middlewareFilter.bind(filter))
